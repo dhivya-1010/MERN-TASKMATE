@@ -11,11 +11,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// ✅ MongoDB connect
+// ✅ MongoDB connect (USE ENV VARIABLE)
 mongoose
-  .connect("mongodb://127.0.0.1:27017/taskmate")
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
-  .catch(err => console.log(err));
+  .catch(err => console.error(err));
 
 /* ---------------- ROUTES ---------------- */
 
