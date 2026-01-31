@@ -6,27 +6,39 @@ import AddTask from "./Components/AddTask";
 import ShowTask from "./Components/ShowTask";
 import TaskChart from "./Components/TaskChart";
 
+// ✅ LIVE BACKEND URL
+const API = "https://taskmate-backend-kox8.onrender.com/api/tasks";
+
 function App() {
   const [task, setTask] = useState("");
   const [tasklist, setTasklist] = useState([]);
   const [editid, setEditid] = useState(null);
 
+  // ✅ THEME STATE (RESTORED)
+  const [theme, setTheme] = useState(
+    JSON.parse(localStorage.getItem("theme")) || "medium"
+  );
+
   // FETCH
   useEffect(() => {
-    axios.get("http://localhost:5000/api/tasks")
-      .then(res => setTasklist(res.data));
+    axios.get(API)
+      .then(res => setTasklist(res.data))
+      .catch(err => console.error(err));
   }, []);
+
+  // ✅ SAVE THEME TO LOCAL STORAGE
+  useEffect(() => {
+    localStorage.setItem("theme", JSON.stringify(theme));
+  }, [theme]);
 
   // ADD / UPDATE
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!task.trim()) return;
 
-    const date = new Date();
-
     if (editid) {
       const res = await axios.put(
-        `http://localhost:5000/api/tasks/${editid}`,
+        `${API}/${editid}`,
         { name: task }
       );
 
@@ -38,13 +50,7 @@ function App() {
       return;
     }
 
-    const res = await axios.post(
-      "http://localhost:5000/api/tasks",
-      {
-        name: task,
-        time: `${date.toLocaleTimeString()} ${date.toLocaleDateString()}`
-      }
-    );
+    const res = await axios.post(API, { name: task });
     setTasklist([...tasklist, res.data]);
     setTask("");
   };
@@ -58,7 +64,7 @@ function App() {
 
   // DELETE
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/tasks/${id}`);
+    await axios.delete(`${API}/${id}`);
     setTasklist(tasklist.filter(t => t._id !== id));
   };
 
@@ -67,7 +73,7 @@ function App() {
     const current = tasklist.find(t => t._id === id);
 
     const res = await axios.put(
-      `http://localhost:5000/api/tasks/${id}`,
+      `${API}/${id}`,
       { completed: !current.completed }
     );
 
@@ -77,9 +83,13 @@ function App() {
   };
 
   return (
-    <div className="App medium">
+    // ✅ USE THEME HERE
+    <div className={"App " + theme}>
       <div className="container">
-        <Header>Taskmate</Header>
+        {/* ✅ PASS THEME PROPS TO HEADER */}
+        <Header theme={theme} setTheme={setTheme}>
+          Taskmate
+        </Header>
 
         <TaskChart tasklist={tasklist} />
 
